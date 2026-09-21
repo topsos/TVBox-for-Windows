@@ -53,6 +53,7 @@ public sealed partial class SettingsPage : Page
         _updating = true;
         NavigationPaneToggle.IsOn = App.Main.IsNavigationPaneOpen;
         SearchDisplayCombo.SelectedIndex = Math.Clamp(Setting.SearchDisplay, 0, 1);
+        CloseBehaviorCombo.SelectedIndex = Setting.MinimizeToTray ? 1 : 0;
         VodUrlBox.Text = Setting.ConfigVod;
         LiveUrlBox.Text = Setting.ConfigLive;
         RefreshConfigLists();
@@ -90,6 +91,12 @@ public sealed partial class SettingsPage : Page
     {
         if (_updating || SearchDisplayCombo.SelectedIndex < 0) return;
         Setting.SearchDisplay = SearchDisplayCombo.SelectedIndex;
+    }
+
+    void OnCloseBehaviorChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updating || CloseBehaviorCombo.SelectedIndex < 0) return;
+        Setting.MinimizeToTray = CloseBehaviorCombo.SelectedIndex == 1;
     }
 
     static int TimeoutIndex(int ms)

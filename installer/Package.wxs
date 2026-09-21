@@ -12,7 +12,8 @@
     Scope="perMachine">
 
     <SummaryInformation Description="TVBox Windows x64 installer" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version of TVBox is already installed." />
+    <MajorUpgrade
+      AllowDowngrades="yes" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="medium" />
 
     <Icon Id="TVBoxIcon.ico" SourceFile="!(bindpath.Publish)\assets\icons\icon.ico" />

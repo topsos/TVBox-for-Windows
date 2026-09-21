@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.1 - 2026-09-22
+
+### Added
+
+- Added a persistent close behavior setting for exiting the app or minimizing it to the system tray.
+
+### Changed
+
+- Restored the search display mode labels to “站点切换” and “分组纵览”.
+- Updated application and release metadata to version 1.1.
+- MSI upgrades now allow lower or identical versions to overwrite the installed version.
+
 ## 1.0.10 - 2026-08-01
 
 ### Fixed

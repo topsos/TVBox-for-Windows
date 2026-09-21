@@ -3,15 +3,15 @@
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
     <Platform>x64</Platform>
-    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.10</ProductVersion>
-    <ProductCode Condition="'$(ProductCode)' == ''">C123080D-CFE2-5C46-8D55-E2DE20194194</ProductCode>
-    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\TVBox-x64-1.0.10</PublishDir>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.1.0</ProductVersion>
+    <ProductCode Condition="'$(ProductCode)' == ''">0F261200-B8F0-56A1-A611-6ED2A4104E0B</ProductCode>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\TVBox-x64-1.1.0</PublishDir>
     <Cultures>zh-CN</Cultures>
     <OutputName>TVBox-Setup-x64-$(ProductVersion)</OutputName>
     <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);ProductCode=$(ProductCode);PublishDir=$(PublishDir)</DefineConstants>
     <SuppressPdbOutput>true</SuppressPdbOutput>
     <!-- Some Windows App SDK binaries expose nonstandard PE language metadata. -->
-    <SuppressIces>$(SuppressIces);ICE03</SuppressIces>
+    <SuppressIces>$(SuppressIces);ICE03;ICE61</SuppressIces>
   </PropertyGroup>
 
   <ItemGroup>

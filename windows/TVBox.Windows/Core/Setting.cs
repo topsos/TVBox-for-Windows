@@ -124,6 +124,7 @@ public static class Setting
     public static double Speed { get => GetFloat("speed", 1f); set => Put("speed", value); }
     public static int Scale { get => GetInt("scale"); set => Put("scale", value); }
     public static int SearchDisplay { get => GetInt("search_display"); set => Put("search_display", value); }
+    public static bool MinimizeToTray { get => GetBool("minimize_to_tray"); set => Put("minimize_to_tray", value); }
     public static int Flag { get => GetInt("flag", 2); set => Put("flag", value); }
     public static string Keep { get => GetString("keep"); set => Put("keep", value); }
     public static string HomeSite { get => GetString("home_site"); set => Put("home_site", value); }

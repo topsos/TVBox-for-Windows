@@ -91,6 +91,28 @@
                 </Grid>
             </StackPanel>
 
+            <StackPanel Style="{StaticResource CardPanel}">
+                <TextBlock Text="窗口" Style="{StaticResource CardTitle}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="关闭软件时"/>
+                        <TextBlock Text="选择点击窗口关闭按钮后的行为" Style="{StaticResource RowDesc}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="CloseBehaviorCombo"
+                              Grid.Column="1"
+                              MinWidth="180"
+                              Style="{StaticResource RightCombo}"
+                              SelectionChanged="OnCloseBehaviorChanged">
+                        <ComboBoxItem Content="退出软件"/>
+                        <ComboBoxItem Content="最小化到系统托盘"/>
+                    </ComboBox>
+                </Grid>
+            </StackPanel>
+
             <!-- ① 配置 -->
             <StackPanel Style="{StaticResource CardPanel}">
                 <TextBlock Text="配置" Style="{StaticResource CardTitle}"/>

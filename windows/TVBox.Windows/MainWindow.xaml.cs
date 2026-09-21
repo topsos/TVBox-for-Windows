@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
     const int PlaybackContentFadeDurationMs = 120;
     const float PlaybackTransitionOpacity = 0.985f;
     readonly WindowPresentationManager _presentation;
+    readonly TrayService _tray;
     InputNonClientPointerSource _titleBarInput;
     XamlRoot _titleBarXamlRoot;
     Microsoft.UI.Dispatching.DispatcherQueueTimer _shellLayoutRefreshTimer;
@@ -55,6 +56,7 @@ public sealed partial class MainWindow : Window
     bool _shellRestorePending;
     int _shellLayoutRefreshGeneration;
     bool _closed;
+    bool _allowWindowClose;
     bool _sourceSetupRequired;
     bool _sourceSetupLoading;
     string _activeSection = "vod";
@@ -66,6 +68,9 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         _presentation = new WindowPresentationManager(this);
+        _tray = new TrayService(this);
+        _tray.Initialize();
+        _tray.ExitRequested += OnTrayExitRequested;
         WindowFrameStyle.Attach(this, _presentation.PrepareSystemRestore);
         Title = "TVBox";
         SystemBackdrop = new MicaBackdrop();
@@ -91,6 +96,7 @@ public sealed partial class MainWindow : Window
         Nav.Loaded += OnNavigationViewLoaded;
         VodConfigService.Instance.Loaded += OnConfigLoaded;
         AppWindow.Changed += OnAppWindowChanged;
+        AppWindow.Closing += OnAppWindowClosing;
         Closed += (s, e) =>
         {
             _closed = true;
@@ -102,6 +108,9 @@ public sealed partial class MainWindow : Window
             ClearTitleBarPassthroughRegion();
             VodConfigService.Instance.Loaded -= OnConfigLoaded;
             AppWindow.Changed -= OnAppWindowChanged;
+            AppWindow.Closing -= OnAppWindowClosing;
+            _tray.ExitRequested -= OnTrayExitRequested;
+            _tray.Dispose();
             StopShellLayoutRefreshStabilizer();
             StopPlaybackWindowTransition(true);
             UnhookServer();
@@ -113,6 +122,18 @@ public sealed partial class MainWindow : Window
         };
         HookServer();
         Startup();
+    }
+
+    void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_allowWindowClose || !Setting.MinimizeToTray || !_tray.HideWindow()) return;
+        args.Cancel = true;
+    }
+
+    void OnTrayExitRequested(object sender, EventArgs e)
+    {
+        _allowWindowClose = true;
+        Close();
     }
 
     async void OnRootGridLoaded(object sender, RoutedEventArgs e)
@@ -202,6 +223,7 @@ public sealed partial class MainWindow : Window
     {
         if (_immersive == immersive)
         {
+            Nav.CompactPaneLength = immersive ? 0 : CompactPaneWidth;
             // ApplyPresentationMode runs before presenter changes. Reset a previous
             // borderless full-screen style so a following compact presenter remains resizable.
             if (immersive && _immersiveBorderless)
@@ -219,11 +241,16 @@ public sealed partial class MainWindow : Window
             _shellRestorePending = false;
             _shellLayoutRefreshGeneration++;
             StopShellLayoutRefreshStabilizer();
+            // NavigationView keeps its compact rail width in the content layout
+            // even while the pane is hidden. Playback must occupy the full client
+            // area, so remove that reserved width for both full-screen and PiP.
+            Nav.CompactPaneLength = 0;
             // Close while hidden so an expanded pane cannot be painted for one frame
             // when the shell is restored after a presenter transition.
             Nav.IsPaneOpen = false;
             Nav.IsPaneVisible = false;
         }
+        else Nav.CompactPaneLength = CompactPaneWidth;
         RootGrid.RowDefinitions[0].Height = immersive ? new GridLength(0) : new GridLength(TitleBarHeight);
         TitleBarArea.Visibility = immersive ? Visibility.Collapsed : Visibility.Visible;
         QueueTitleBarPassthroughUpdate();
