@@ -113,6 +113,9 @@ public class VodConfigService
                 0,
                 preferCache);
             var pending = await Task.Run(() => BuildPending(resolved.Config, resolved.Node, resolved.Name));
+            // 后台重载下载期间可能已清空配置，不能重新提交过期来源。
+            if (expectedUrl != null && !string.Equals(Config?.Url, expectedUrl, StringComparison.OrdinalIgnoreCase))
+                return false;
             await CommitAsync(pending);
 
             foreach (var import in imports)

@@ -133,6 +133,7 @@ public sealed partial class LivePage : Page, INavigationPlayback
     {
         base.OnNavigatedFrom(e);
         _isNavigatedActive = false;
+        PlaybackInfo.Hide(false);
         _catalogLoading = false;
         _playbackLoading = false;
         _showPlaybackSpeed = false;
@@ -1526,11 +1527,23 @@ public sealed partial class LivePage : Page, INavigationPlayback
         if (_fullscreen || _compact) _chromeTimer.Start();
     }
 
+    void OnPlaybackInfo(object sender, RoutedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_isNavigatedActive) return;
+            CloseChannelPanel(false);
+            CloseLinePanel(false);
+            ShowPlayerChrome();
+            PlaybackInfo.Show(_core, PlaybackInfoButton);
+        });
+    }
+
     void HidePlayerChrome()
     {
         _chromeTimer.Stop();
         if (!_fullscreen && !_compact) return;
-        if (LiveChannelOverlay.Visibility == Visibility.Visible ||
+        if (PlaybackInfo.IsOpen || LiveChannelOverlay.Visibility == Visibility.Visible ||
             LiveLineOverlay.Visibility == Visibility.Visible) return;
         if (_core?.IsPlaying != true) return;
         TopBar.Opacity = 0;
@@ -1548,7 +1561,12 @@ public sealed partial class LivePage : Page, INavigationPlayback
         switch (e.Key)
         {
             case VirtualKey.Escape:
-                if (LiveLineOverlay.Visibility == Visibility.Visible)
+                if (PlaybackInfo.IsOpen)
+                {
+                    PlaybackInfo.QueueClose();
+                    e.Handled = true;
+                }
+                else if (LiveLineOverlay.Visibility == Visibility.Visible)
                 {
                     QueueLinePanelMutation(() => CloseLinePanel());
                     e.Handled = true;

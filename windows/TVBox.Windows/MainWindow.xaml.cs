@@ -100,6 +100,7 @@ public sealed partial class MainWindow : Window
         Closed += (s, e) =>
         {
             _closed = true;
+            ConfigAutoRefreshService.Instance.Stop();
             if (_titleBarXamlRoot != null)
             {
                 _titleBarXamlRoot.Changed -= OnTitleBarXamlRootChanged;

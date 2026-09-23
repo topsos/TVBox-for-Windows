@@ -41,6 +41,7 @@ public partial class App : Application
         LocalServer.Instance.Start();
         Main = new MainWindow();
         Main.Activate();
+        Engine.ConfigAutoRefreshService.Instance.ApplySettings();
     }
 
     public static void Post(Action action)

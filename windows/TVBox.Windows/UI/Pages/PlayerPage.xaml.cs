@@ -123,6 +123,7 @@ public sealed partial class PlayerPage : Page, INavigationPlayback
     {
         base.OnNavigatedFrom(e);
         _closed = true;
+        PlaybackInfo.Hide(false);
         _isBuffering = false;
         HideLoading();
         _selectionMutationVersion++;
@@ -1248,9 +1249,20 @@ public sealed partial class PlayerPage : Page, INavigationPlayback
         _hideTimer?.Start();
     }
 
+    void OnPlaybackInfo(object sender, RoutedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (_closed) return;
+            CloseSelectionPanel(false);
+            ShowControls();
+            PlaybackInfo.Show(_core, PlaybackInfoButton);
+        });
+    }
+
     void MaybeHideControls()
     {
-        if (_closed || _menuOpen > 0) return;
+        if (_closed || _menuOpen > 0 || PlaybackInfo.IsOpen) return;
         if (_core == null || !_core.IsPlaying) return; // 暂停/加载中不隐藏
         ControlLayer.IsHitTestVisible = false;
         FadeOutControls.Begin();
@@ -1565,7 +1577,11 @@ public sealed partial class PlayerPage : Page, INavigationPlayback
             case (VirtualKey)0xDD: // ]
                 ChangeEpisode(1); e.Handled = true; break;
             case VirtualKey.Escape:
-                if (_selectionKind != PlayerSelectionKind.None)
+                if (PlaybackInfo.IsOpen)
+                {
+                    PlaybackInfo.QueueClose();
+                }
+                else if (_selectionKind != PlayerSelectionKind.None)
                 {
                     QueueSelectionMutation(() => CloseSelectionPanel());
                 }

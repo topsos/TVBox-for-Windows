@@ -152,15 +152,24 @@
                       Tapped="OnPlayerTapped" DoubleTapped="OnPlayerDoubleTapped"/>
 
                 <!-- 顶部信息条 -->
-                <Grid x:Name="TopBar" VerticalAlignment="Top" Padding="20,16,20,28"
-                      PointerPressed="OnCompactDragPressed">
+                <Grid x:Name="TopBar" VerticalAlignment="Top" Padding="20,16,20,28">
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#B0000000" Offset="0"/>
                             <GradientStop Color="#00000000" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
-                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="PlaybackInfoButton" Grid.Column="1" Width="36" Height="36" Padding="0"
+                            Background="Transparent" BorderThickness="0" VerticalAlignment="Top"
+                            Click="OnPlaybackInfo" ToolTipService.ToolTip="播放信息" AutomationProperties.Name="播放信息">
+                        <FontIcon Glyph="&#xE946;" FontSize="17"/>
+                    </Button>
+                    <StackPanel VerticalAlignment="Center" Spacing="2" Margin="0,0,12,0"
+                                PointerPressed="OnCompactDragPressed">
                         <TextBlock x:Name="ChannelNameText" Text="" FontSize="20" FontWeight="SemiBold"/>
                         <TextBlock x:Name="ProgramText" Text="" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -414,6 +423,8 @@
                         </Grid>
                     </Border>
                 </Grid>
+
+                <controls:PlaybackInfoPanel x:Name="PlaybackInfo" Canvas.ZIndex="60"/>
 
                 <InfoBar x:Name="PlayInfo" VerticalAlignment="Bottom" Margin="16,0,16,118" IsOpen="False"/>
 

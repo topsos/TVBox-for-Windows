@@ -13,6 +13,9 @@ public class LiveConfigService
     const int MaxDepotDepth = 3;
     readonly SemaphoreSlim _loadLock = new(1, 1);
     bool _syncedToVod;
+    int _configGeneration;
+
+    internal bool IsSyncedToVod => _syncedToVod;
 
     public static LiveConfigService Instance { get; } = new();
 
@@ -24,6 +27,7 @@ public class LiveConfigService
 
     public void Clear()
     {
+        _configGeneration++;
         _syncedToVod = false;
         Config = new();
         Lives = new();
@@ -35,6 +39,7 @@ public class LiveConfigService
     public void OnVodWithoutLives()
     {
         if (!_syncedToVod) return;
+        _configGeneration++;
         var oldUrl = Config.Url;
         _syncedToVod = false;
         Config = new();
@@ -50,12 +55,22 @@ public class LiveConfigService
     public Task LoadStartupAsync(ConfigRecord config, bool allowNodeFallback = true) =>
         LoadCoreAsync(config, true, allowNodeFallback);
 
-    async Task LoadCoreAsync(ConfigRecord config, bool preferCache, bool allowNodeFallback)
+    /// <summary>仅在预期直播配置仍有效时重载，避免后台刷新覆盖新选择。</summary>
+    internal Task<bool> ReloadCurrentAsync(string expectedUrl) => LoadCoreAsync(null, false, true, expectedUrl);
+
+    async Task<bool> LoadCoreAsync(ConfigRecord config, bool preferCache, bool allowNodeFallback, string expectedUrl = null)
     {
-        if (config == null || string.IsNullOrWhiteSpace(config.Url)) throw new Exception("请输入直播源地址");
         await _loadLock.WaitAsync();
         try
         {
+            if (expectedUrl != null)
+            {
+                if (!string.Equals(Config?.Url, expectedUrl, StringComparison.OrdinalIgnoreCase)) return false;
+                config = Config;
+            }
+            if (config == null || string.IsNullOrWhiteSpace(config.Url)) throw new Exception("请输入直播源地址");
+            var generation = _configGeneration;
+            var syncedToVod = _syncedToVod;
             var lives = await LoadAddress(
                 config.Url.Trim(),
                 0,
@@ -64,15 +79,18 @@ public class LiveConfigService
                 allowNodeFallback);
             if (lives.Count == 0) throw new Exception("地址中没有可用的直播源");
             if (preferCache &&
-                !string.Equals(Setting.ConfigLive, config.Url, StringComparison.OrdinalIgnoreCase)) return;
+                !string.Equals(Setting.ConfigLive, config.Url, StringComparison.OrdinalIgnoreCase)) return false;
+            if (expectedUrl != null && (generation != _configGeneration ||
+                !string.Equals(Config?.Url, expectedUrl, StringComparison.OrdinalIgnoreCase))) return false;
 
             Apply(config, lives);
-            _syncedToVod = false;
+            _syncedToVod = expectedUrl != null && syncedToVod;
             Stores.SaveConfig(config);
             Setting.ConfigLive = config.Url;
         }
         finally { _loadLock.Release(); }
         App.Post(() => Loaded?.Invoke());
+        return true;
     }
 
     /// <summary>Replaces the live list with entries embedded in the active video configuration.</summary>
@@ -485,6 +503,7 @@ public class LiveConfigService
 
     void Apply(ConfigRecord config, List<Models.Live> lives)
     {
+        _configGeneration++;
         Config = config;
         Lives = lives ?? new();
         var boot = Lives.LastOrDefault(live => live.Boot);

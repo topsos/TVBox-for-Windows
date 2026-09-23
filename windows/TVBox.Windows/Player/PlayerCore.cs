@@ -6,7 +6,7 @@ using TVBoxForWindows.Core;
 namespace TVBoxForWindows.Player;
 
 /// <summary>播放核心（移植自 Players.java）：封装 FlyleafLib Player，统一 Open/事件/缩放/倍速；FFmpeg 缺失时降级报错。</summary>
-public class PlayerCore : IDisposable
+public partial class PlayerCore : IDisposable
 {
     const string TAG = "PlayerCore";
     const string MissingFFmpegMsg = "FFmpeg 解码库未就绪：安装内容可能不完整，请重新安装或完整解压 TVBox";
@@ -56,6 +56,7 @@ public class PlayerCore : IDisposable
     long _transferSampleTick;
     long _transferSampleBytes;
     int _transferSampleGeneration = -1;
+    double _transferBytesPerSecond;
 
     public event Action Opened;
     public event Action<string> Errored;
@@ -205,6 +206,7 @@ public class PlayerCore : IDisposable
         var bytesPerSecond = Math.Max(0, totalBytes - _transferSampleBytes) * 1000d / elapsedMs;
         _transferSampleTick = now;
         _transferSampleBytes = totalBytes;
+        _transferBytesPerSecond = bytesPerSecond;
         TransferRateChanged?.Invoke(bytesPerSecond);
     }
 
@@ -233,6 +235,7 @@ public class PlayerCore : IDisposable
         _transferSampleTick = Environment.TickCount64;
         _transferSampleBytes = 0;
         _transferSampleGeneration = generation;
+        _transferBytesPerSecond = 0;
         if (notify && !_disposed) TransferRateChanged?.Invoke(0);
     }
 
@@ -623,6 +626,10 @@ public class PlayerCore : IDisposable
         opt.Remove("headers"); opt.Remove("user_agent"); opt.Remove("referer"); opt.Remove("http_proxy");
         opt.Remove("decryption_key");
         if (!ApplyDrm(item.Drm, opt, generation)) return null;
+        // 每次打开媒体都重新设置，避免沿用上一个频道的 RTSP 传输方式。
+        opt["rtsp_transport"] = item.Url?.StartsWith("rtsp://", StringComparison.OrdinalIgnoreCase) == true
+            ? Setting.RtspTransport
+            : "tcp";
         ApplyHeaders(item.Headers, item.Url, opt);
         return opt;
     }

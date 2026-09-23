@@ -116,6 +116,12 @@ public static class Setting
     public static int Quality { get => GetInt("quality", 2); set => Put("quality", value); }
     public static int SiteTimeout { get => GetInt("site_timeout", 15000); set => Put("site_timeout", value); }
     public static int PlayTimeout { get => GetInt("play_timeout", 15000); set => Put("play_timeout", value); }
+    /// <summary>RTSP 媒体传输方式：默认 TCP，仅接受 TCP 或 UDP。</summary>
+    public static string RtspTransport
+    {
+        get => string.Equals(GetString("rtsp_transport"), "udp", StringComparison.OrdinalIgnoreCase) ? "udp" : "tcp";
+        set => Put("rtsp_transport", string.Equals(value, "udp", StringComparison.OrdinalIgnoreCase) ? "udp" : "tcp");
+    }
     public static bool LocalServerLan { get => GetBool("local_server_lan"); set => Put("local_server_lan", value); }
     public static bool Incognito { get => GetBool("incognito"); set => Put("incognito", value); }
     public static bool DanmakuLoad { get => GetBool("danmaku_load"); set => Put("danmaku_load", value); }
@@ -131,5 +137,13 @@ public static class Setting
     public static string Parse { get => GetString("parse"); set => Put("parse", value); }
     public static string ConfigVod { get => GetString("config_vod"); set => Put("config_vod", value); }
     public static string ConfigLive { get => GetString("config_live"); set => Put("config_live", value); }
+    /// <summary>配置自动刷新间隔，单位分钟；0 表示关闭。</summary>
+    public static int ConfigRefreshMinutes
+    {
+        get => NormalizeConfigRefreshMinutes(GetInt("config_refresh_minutes"));
+        set => Put("config_refresh_minutes", NormalizeConfigRefreshMinutes(value));
+    }
+
+    static int NormalizeConfigRefreshMinutes(int value) => value is 1 or 5 or 15 or 30 or 60 or 180 ? value : 0;
     public static string ConfigWall { get => GetString("config_wall"); set => Put("config_wall", value); }
 }

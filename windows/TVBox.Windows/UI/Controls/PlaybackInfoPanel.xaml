@@ -1,0 +1,38 @@
+<UserControl
+    x:Class="TVBoxForWindows.UI.Controls.PlaybackInfoPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    RequestedTheme="Dark">
+    <!-- 使用页面内面板，兼容播放器全屏和画中画的输入层。 -->
+    <Grid Background="Transparent" Tapped="OnBackdropTapped" DoubleTapped="OnPanelDoubleTapped">
+        <Border MaxWidth="440" Margin="12" Padding="16" HorizontalAlignment="Right"
+                Background="#F51A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1"
+                CornerRadius="8" Tapped="OnPanelTapped">
+            <Grid RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="播放信息" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Button x:Name="CloseButton" Grid.Column="1" Width="32" Height="32" Padding="0"
+                            Background="Transparent" BorderThickness="0" Click="OnCloseClick"
+                            ToolTipService.ToolTip="关闭（Esc）" AutomationProperties.Name="关闭播放信息">
+                        <FontIcon Glyph="&#xE711;" FontSize="13"/>
+                    </Button>
+                </Grid>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <TextBlock x:Name="DetailsText" FontSize="13" LineHeight="23" TextWrapping="Wrap"
+                               IsTextSelectionEnabled="True" AutomationProperties.Name="当前播放详细信息"/>
+                </ScrollViewer>
+                <TextBlock Grid.Row="2" Text="每秒刷新；码率按接收数据统计，可能随缓冲波动。帧计数会在切源或定位后重置。"
+                           FontSize="11" Foreground="#BFFFFFFF" TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

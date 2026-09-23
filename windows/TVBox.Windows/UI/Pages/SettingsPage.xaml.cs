@@ -18,6 +18,7 @@ public sealed partial class SettingsPage : Page
 {
     static readonly int[] TimeoutValues = { 5000, 10000, 15000, 30000 };
     static readonly int[] AreaValues = { 25, 50, 75, 100 };
+    static readonly int[] ConfigRefreshValues = { 0, 1, 5, 15, 30, 60, 180 };
 
     bool _updating = true; // InitializeComponent 也会触发 Slider.ValueChanged，必须从构造前就抑制
     bool _vodConfigLoading;
@@ -35,6 +36,7 @@ public sealed partial class SettingsPage : Page
         {
             VodConfigService.Instance.Loaded += OnVodLoaded;
             LiveConfigService.Instance.Loaded += OnLiveLoaded;
+            ConfigAutoRefreshService.Instance.Changed += UpdateConfigRefreshStatus;
             LoadAll();
         };
         Unloaded += (s, e) =>
@@ -43,8 +45,18 @@ public sealed partial class SettingsPage : Page
             CloseConfigHistoryFlyouts();
             VodConfigService.Instance.Loaded -= OnVodLoaded;
             LiveConfigService.Instance.Loaded -= OnLiveLoaded;
+            ConfigAutoRefreshService.Instance.Changed -= UpdateConfigRefreshStatus;
         };
     }
+
+    void OnConfigRefreshChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updating || ConfigRefreshCombo.SelectedIndex < 0) return;
+        Setting.ConfigRefreshMinutes = ConfigRefreshValues[ConfigRefreshCombo.SelectedIndex];
+        ConfigAutoRefreshService.Instance.ApplySettings();
+    }
+
+    void UpdateConfigRefreshStatus() => ConfigRefreshStatusText.Text = ConfigAutoRefreshService.Instance.StatusText;
 
     // ---------- 初始化 ----------
 
@@ -56,6 +68,8 @@ public sealed partial class SettingsPage : Page
         CloseBehaviorCombo.SelectedIndex = Setting.MinimizeToTray ? 1 : 0;
         VodUrlBox.Text = Setting.ConfigVod;
         LiveUrlBox.Text = Setting.ConfigLive;
+        ConfigRefreshCombo.SelectedIndex = Math.Max(0, Array.IndexOf(ConfigRefreshValues, Setting.ConfigRefreshMinutes));
+        UpdateConfigRefreshStatus();
         RefreshConfigLists();
         RefreshSiteParse();
         RefreshDohs();
@@ -63,6 +77,7 @@ public sealed partial class SettingsPage : Page
         SpeedValueText.Text = $"{SpeedSlider.Value:0.##}x";
         ScaleCombo.SelectedIndex = Math.Clamp(Setting.Scale, 0, 4);
         PlayTimeoutCombo.SelectedIndex = TimeoutIndex(Setting.PlayTimeout);
+        RtspTransportCombo.SelectedIndex = Setting.RtspTransport == "udp" ? 1 : 0;
         SkipToggle.IsOn = UiSetting.SkipStartEnd;
         DanmakuLoadToggle.IsOn = Setting.DanmakuLoad;
         DanmakuAutoToggle.IsOn = Setting.DanmakuAuto;
@@ -292,6 +307,12 @@ public sealed partial class SettingsPage : Page
         Setting.PlayTimeout = TimeoutValues[PlayTimeoutCombo.SelectedIndex];
     }
 
+    void OnRtspTransportChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updating || RtspTransportCombo.SelectedIndex < 0) return;
+        Setting.RtspTransport = RtspTransportCombo.SelectedIndex == 1 ? "udp" : "tcp";
+    }
+
     void OnSkipToggled(object sender, RoutedEventArgs e)
     {
         if (_updating) return;
@@ -498,6 +519,7 @@ public sealed partial class SettingsPage : Page
                         entry.ExtractToFile(Path.Combine(AppPaths.Root, entry.Name), true);
             });
             Setting.Load();
+            ConfigAutoRefreshService.Instance.ApplySettings();
             ShowStatus("还原完成，建议重启应用使全部数据生效", InfoBarSeverity.Success);
             LoadAll();
         }

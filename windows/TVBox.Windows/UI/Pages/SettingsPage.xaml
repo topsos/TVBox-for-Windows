@@ -220,6 +220,34 @@
                 </Grid>
             </StackPanel>
 
+            <StackPanel Style="{StaticResource CardPanel}">
+                <TextBlock Text="配置自动刷新" Style="{StaticResource CardTitle}"/>
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="刷新间隔"/>
+                        <TextBlock Text="程序运行时，按间隔重载当前点播与直播配置" Style="{StaticResource RowDesc}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="ConfigRefreshCombo" Grid.Column="1" MinWidth="160"
+                              Style="{StaticResource RightCombo}" SelectionChanged="OnConfigRefreshChanged"
+                              AutomationProperties.Name="配置自动刷新间隔">
+                        <ComboBoxItem Content="关闭（默认）"/>
+                        <ComboBoxItem Content="1 分钟"/>
+                        <ComboBoxItem Content="5 分钟"/>
+                        <ComboBoxItem Content="15 分钟"/>
+                        <ComboBoxItem Content="30 分钟"/>
+                        <ComboBoxItem Content="1 小时"/>
+                        <ComboBoxItem Content="3 小时"/>
+                    </ComboBox>
+                </Grid>
+                <TextBlock x:Name="ConfigRefreshStatusText" Style="{StaticResource RowDesc}"/>
+                <TextBlock Text="网络异常时尝试沿用可用缓存；修改间隔后重新计时。部分源重载服务时可能短暂影响播放。"
+                           Style="{StaticResource RowDesc}"/>
+            </StackPanel>
+
             <!-- ② 播放 -->
             <StackPanel Style="{StaticResource CardPanel}">
                 <TextBlock Text="播放" Style="{StaticResource CardTitle}"/>
@@ -269,6 +297,21 @@
                         <ComboBoxItem Content="10 秒"/>
                         <ComboBoxItem Content="15 秒"/>
                         <ComboBoxItem Content="30 秒"/>
+                    </ComboBox>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="RTSP 传输方式"/>
+                        <TextBlock Text="用于 rtsp:// 播放源；修改后重新打开频道或视频生效" Style="{StaticResource RowDesc}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="RtspTransportCombo" Grid.Column="1" MinWidth="160" Style="{StaticResource RightCombo}" SelectionChanged="OnRtspTransportChanged" AutomationProperties.Name="RTSP 传输方式">
+                        <ComboBoxItem Content="TCP（默认）"/>
+                        <ComboBoxItem Content="UDP"/>
                     </ComboBox>
                 </Grid>
 
