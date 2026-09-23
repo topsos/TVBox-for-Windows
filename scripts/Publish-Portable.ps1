@@ -454,7 +454,6 @@ New-Item -ItemType Directory -Force -Path $publishDirectory | Out-Null
 
 $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
 if (-not $dotnet) { throw "未找到 dotnet。请安装 .NET 9 SDK。" }
-$manifestTool = Resolve-ManifestTool -DotNetPath $dotnet.Source
 
 Write-Host "Publishing $packageName..."
 Push-Location $repoRoot
@@ -469,6 +468,9 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet restore 失败，退出代码: $LASTEXITCODE"
     }
+
+    # 新构建环境在还原依赖后才会有 Windows SDK 的清单工具。
+    $manifestTool = Resolve-ManifestTool -DotNetPath $dotnet.Source
 
     & $dotnet.Source publish $project `
         -c Release `
