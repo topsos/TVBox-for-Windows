@@ -1,0 +1,35 @@
+name: 构建 TVBox Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: 生成便携包
+        shell: pwsh
+        run: .\scripts\Publish-Portable.ps1 -Version 1.1.3
+
+      - name: 保存下载文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: TVBox-x64-1.1.3
+          path: |
+            artifacts/TVBox-x64-1.1.3.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
